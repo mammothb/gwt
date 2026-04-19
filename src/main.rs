@@ -7,6 +7,6 @@ fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Init => println!("init"),
+        Commands::Init(args) => println!("{:?}, {}", args.name, args.repository),
     }
 }
