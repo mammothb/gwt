@@ -18,7 +18,7 @@ pub enum Commands {
 #[derive(Args)]
 pub struct InitArgs {
     // The repository to clone from
-    pub repository: String,
+    pub url: String,
     /// Set the resulting workspace name, defaults to the '<repo>-workspace'
     #[arg(short, long)]
     pub name: Option<String>,
