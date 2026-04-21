@@ -1,4 +1,7 @@
-use anyhow::{Context, Result};
+use std::{env::current_dir, fs::create_dir_all};
+
+use anyhow::{Context, Result, bail};
+use log::info;
 
 use crate::cli::InitArgs;
 
@@ -7,7 +10,14 @@ pub fn init(args: &InitArgs) -> Result<()> {
         Some(name) => name.clone(),
         None => format!("{}-workspace", parse_repo_name(&args.url)?),
     };
-    println!("{name}");
+
+    let workspace_dir = current_dir()?.join(&name);
+    if workspace_dir.exists() {
+        bail!("Directory '{}' already exists", workspace_dir.display());
+    }
+    create_dir_all(&workspace_dir)?;
+    info!("Created '{}'", workspace_dir.display());
+
     Ok(())
 }
 
