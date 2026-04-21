@@ -1,6 +1,7 @@
-use std::{env::current_dir, fs::create_dir_all};
+use std::{env::current_dir, fs::create_dir_all, path::Path};
 
 use anyhow::{Context, Result, bail};
+use git2::{Repository, build::RepoBuilder};
 use log::info;
 
 use crate::cli::InitArgs;
@@ -8,7 +9,7 @@ use crate::cli::InitArgs;
 pub fn init(args: &InitArgs) -> Result<()> {
     let name = match &args.name {
         Some(name) => name.clone(),
-        None => format!("{}-workspace", parse_repo_name(&args.url)?),
+        None => format!("{}-workspace", extract_repo_name(&args.url)?),
     };
 
     let workspace_dir = current_dir()?.join(&name);
@@ -18,10 +19,27 @@ pub fn init(args: &InitArgs) -> Result<()> {
     create_dir_all(&workspace_dir)?;
     info!("Created '{}'", workspace_dir.display());
 
+    let repo = clone_repository(&args.url, &workspace_dir)?;
+    info!("Initialized '{}'", repo.path().display());
+
     Ok(())
 }
 
-fn parse_repo_name(url: &str) -> Result<String> {
+fn clone_repository(url: &str, workspace_dir: &Path) -> Result<Repository> {
+    let repo_dir = workspace_dir.join(".bare");
+    let repo = RepoBuilder::new()
+        .bare(true)
+        .clone(url, &repo_dir)
+        .with_context(|| format!("Failed to clone {} into {}", url, repo_dir.display()))?;
+
+    repo.config()?
+        .set_str("remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*")
+        .context("Failed to configure remote.origin.fetch")?;
+
+    Ok(repo)
+}
+
+fn extract_repo_name(url: &str) -> Result<String> {
     url.rsplit_once('/')
         .and_then(|(_, part)| part.strip_suffix(".git"))
         .map(|name| name.to_string())

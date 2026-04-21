@@ -4,7 +4,7 @@ mod logger;
 
 use clap::Parser;
 use cli::{Cli, Commands};
-use commands::cmd_init;
+use commands::init_workspace;
 use log::{LevelFilter, error, set_logger, set_max_level};
 
 use crate::logger::Logger;
@@ -20,7 +20,7 @@ fn main() {
     let cli = Cli::parse();
 
     if let Err(err) = match &cli.command {
-        Commands::Init(args) => cmd_init(args),
+        Commands::Init(args) => init_workspace(args),
     } {
         error!("Failed: {err}");
     }

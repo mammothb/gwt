@@ -6,4 +6,5 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.102"
 clap = { version = "4.6.1", features = ["cargo", "derive"] }
+git2 = { version = "0.20.4", features = ["https", "ssh"] }
 log = "0.4.29"
