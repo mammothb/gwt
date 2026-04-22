@@ -45,3 +45,25 @@ fn extract_repo_name(url: &str) -> Result<String> {
         .map(|name| name.to_string())
         .with_context(|| "Invalid repo URL")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rstest::*;
+
+    #[rstest]
+    #[case("https://github.com/user/repo-name.git")]
+    #[case("git@github.com:user/repo-name.git")]
+    fn extract_repo_name_returns_name_for_valid_url(#[case] url: &str) {
+        assert_eq!(extract_repo_name(url).unwrap(), "repo-name");
+    }
+
+    #[rstest]
+    #[case("https://github.com/user/repo-name")]
+    #[case("git@github.com:user/repo-name")]
+    #[case("not-a-url")]
+    #[should_panic(expected = "Invalid repo URL")]
+    fn extract_repo_name_fails_for_invalid_url(#[case] url: &str) {
+        extract_repo_name(url).unwrap();
+    }
+}
