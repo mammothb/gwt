@@ -53,7 +53,7 @@ jobs:
           TARGET: ${{ matrix.target }}
         run: |
           suffix=''
-          if [[ "${TARGET}" ~= *-pc-windows-* ]]; then
+          if [[ "${TARGET}" == *-pc-windows-* ]]; then
             suffix='.exe'
           fi
           src_path="./target/${TARGET}/release/${NAME}${suffix}"

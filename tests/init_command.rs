@@ -10,7 +10,13 @@ fn repository() -> (TempDir, String) {
     let repo_dir = TempDir::new("repo_fixture").unwrap();
     let repo_path = repo_dir.path().join("test-repo.git");
     Repository::init_bare(&repo_path).unwrap();
-    (repo_dir, format!("file://{}", repo_path.display()))
+    (
+        repo_dir,
+        format!(
+            "file://{}",
+            repo_path.display().to_string().replace("\\", "/")
+        ),
+    )
 }
 
 #[rstest]
