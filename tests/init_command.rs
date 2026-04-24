@@ -3,20 +3,14 @@ use std::env::set_current_dir;
 use assert_cmd::Command;
 use git2::Repository;
 use rstest::*;
-use tempdir::TempDir;
+use tempfile::TempDir;
 
 #[fixture]
 fn repository() -> (TempDir, String) {
-    let repo_dir = TempDir::new("repo_fixture").unwrap();
+    let repo_dir = TempDir::new().unwrap();
     let repo_path = repo_dir.path().join("test-repo.git");
     Repository::init_bare(&repo_path).unwrap();
-    (
-        repo_dir,
-        format!(
-            "file://{}",
-            repo_path.display().to_string().replace("\\", "/")
-        ),
-    )
+    (repo_dir, format!("file://{}", repo_path.display()))
 }
 
 #[rstest]
