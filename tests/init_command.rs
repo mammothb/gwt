@@ -3,6 +3,7 @@ use std::env::set_current_dir;
 use assert_cmd::Command;
 use git2::Repository;
 use rstest::*;
+use serial_test::serial;
 use tempfile::TempDir;
 
 #[fixture]
@@ -24,6 +25,7 @@ fn init_fails_without_url() {
 }
 
 #[rstest]
+#[serial]
 fn init_creates_workspace_with_correct_name(repository: (TempDir, String)) {
     set_current_dir(&repository.0).unwrap();
 
@@ -38,6 +40,7 @@ fn init_creates_workspace_with_correct_name(repository: (TempDir, String)) {
 }
 
 #[rstest]
+#[serial]
 fn init_creates_workspace_with_custom_name(repository: (TempDir, String)) {
     set_current_dir(&repository.0).unwrap();
 
