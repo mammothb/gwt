@@ -10,6 +10,7 @@ on:
 permissions:
   contents: write
 env:
+  NAME: ${{ github.event.repository.name }}
   VERSION: ${{ github.ref_name }}
 jobs:
   create-release:
