@@ -2,6 +2,8 @@
 name = "gwt"
 version = "0.1.0"
 edition = "2024"
+description = "Git worktree manager"
+license = "MIT"
 
 [dependencies]
 anyhow = "1.0.102"
