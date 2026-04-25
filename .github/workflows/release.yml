@@ -11,23 +11,32 @@ permissions:
   contents: write
 env:
   NAME: ${{ github.event.repository.name }}
-  VERSION: ${{ github.ref_name }}
 jobs:
-  create-release:
-    name: Create release
+  publish:
+    name: Publish crates
     runs-on: ubuntu-latest
+    environment: release
+    if: ${{ github.repository_owner == 'mammothb' }}
+    permissions:
+      contents: write
+      id-token: write # Required for OIDC token exchange
     steps:
       - &checkout
         name: Checkout
         uses: actions/checkout@v6
-      - name: GitHub - Create release
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Publish crates
+        uses: release-plz/action@1528104d2ca23787631a1c1f022abb64b34c1e11 # v0.5.128
+        with:
+          command: release
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release create --draft ${VERSION}
+          GITHUB_TOKEN: ${{ github.token }}
   build:
     name: "Build ${{ matrix.target }}: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
-    needs: create-release
+    needs: publish
     strategy:
       fail-fast: false
       matrix:
@@ -64,4 +73,4 @@ jobs:
       - name: GitHub - Upload release archive
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload ${VERSION} ${{ steps.paths.outputs.pkg_name }}
+        run: gh release upload ${{ github.ref_name }} ${{ steps.paths.outputs.pkg_name }}
