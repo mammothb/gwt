@@ -75,6 +75,8 @@ jobs:
             os: windows-latest
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - *checkout
       - name: Setup - Rust toolchain
