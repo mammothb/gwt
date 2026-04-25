@@ -38,6 +38,9 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.repository_owner == 'mammothb' }}
     environment: release
+    outputs:
+      releases_created: ${{ steps.run-release-plz.outputs.releases_created }}
+      tag_name: ${{ steps.tag.outputs.tag_name }}
     permissions:
       pull-requests: read
       contents: write
@@ -45,15 +48,24 @@ jobs:
     steps:
       - *checkout
       - name: Run release-plz
+        id: run-release-plz
         uses: release-plz/action@1528104d2ca23787631a1c1f022abb64b34c1e11 # v0.5
         with:
           command: release
         env:
           GITHUB_TOKEN: ${{ github.token }}
+      - name: Output - Tag name
+        id: tag
+        env:
+          RELEASES: ${{ steps.run-release-plz.outputs.releases }}
+        run: |
+          releae_tag=$(echo "${RELEASES}" | jq -r '.[0].tag')
+          echo "tag_name=${release_tag}" >> "${GITHUB_OUTPUT}"
   build:
     name: "Build ${{ matrix.target }}: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     needs: release-plz-release
+    if: ${{ needs.release-plz-release.outputs.releases_created == 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -90,4 +102,5 @@ jobs:
       - name: GitHub - Upload release archive
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload ${{ github.ref_name }} ${{ steps.paths.outputs.pkg_name }}
+          TAG_NAME: ${{ needs.release-plz-release.outputs.tag_name }}
+        run: gh release upload "${TAG_NAME}" ${{ steps.paths.outputs.pkg_name }}
