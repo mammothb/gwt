@@ -1,9 +1,13 @@
 [package]
-name = "gwt"
+name = "gwt-helper"
 version = "0.1.0"
 edition = "2024"
-description = "Git worktree manager"
+description = "Git worktree helper"
 license = "MIT"
+
+[[bin]]
+name = "gwt"
+path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.102"
