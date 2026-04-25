@@ -40,7 +40,7 @@ jobs:
     environment: release
     outputs:
       releases_created: ${{ steps.run-release-plz.outputs.releases_created }}
-      tag_name: ${{ steps.tag.outputs.tag_name }}
+      release_tag: ${{ steps.tag.outputs.release_tag }}
     permissions:
       pull-requests: read
       contents: write
@@ -59,8 +59,9 @@ jobs:
         env:
           RELEASES: ${{ steps.run-release-plz.outputs.releases }}
         run: |
-          releae_tag=$(echo "${RELEASES}" | jq -r '.[0].tag')
-          echo "tag_name=${release_tag}" >> "${GITHUB_OUTPUT}"
+          release_tag=$(echo "${RELEASES}" | jq -r '.[0].tag')
+          echo "release_tag=${release_tag}" >> "${GITHUB_OUTPUT}"
+          echo "::notice ::release_tag=${release_tag}"
   build:
     name: "Build ${{ matrix.target }}: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
@@ -102,5 +103,5 @@ jobs:
       - name: GitHub - Upload release archive
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG_NAME: ${{ needs.release-plz-release.outputs.tag_name }}
-        run: gh release upload "${TAG_NAME}" ${{ steps.paths.outputs.pkg_name }}
+          RELEASE_TAG: ${{ needs.release-plz-release.outputs.release_tag }}
+        run: gh release upload "${RELEASE_TAG}" ${{ steps.paths.outputs.pkg_name }}
