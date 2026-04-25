@@ -2,33 +2,50 @@ name: Release
 on:
   workflow_dispatch:
   push:
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
+    branches:
+      - master
 defaults:
   run:
     shell: bash
-permissions:
-  contents: write
 env:
   NAME: ${{ github.event.repository.name }}
 jobs:
-  publish:
-    name: Publish crates
+  release-plz-pr:
+    name: Release-plz PR
     runs-on: ubuntu-latest
-    environment: release
     if: ${{ github.repository_owner == 'mammothb' }}
+    concurrency:
+      group: release-plz-${{ github.ref }}
+      cancel-in-progress: false
     permissions:
+      pull-requests: write
       contents: write
-      id-token: write # Required for OIDC token exchange
     steps:
       - &checkout
-        name: Checkout
+        name: Checkout repository
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Publish crates
+      - name: Run release-plz
         uses: release-plz/action@1528104d2ca23787631a1c1f022abb64b34c1e11 # v0.5.128
+        with:
+          command: release-pr
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+  release-plz-release:
+    name: Release-plz release
+    runs-on: ubuntu-latest
+    if: ${{ github.repository_owner == 'mammothb' }}
+    environment: release
+    permissions:
+      pull-requests: read
+      contents: write
+      id-token: write
+    steps:
+      - *checkout
+      - name: Run release-plz
+        uses: release-plz/action@1528104d2ca23787631a1c1f022abb64b34c1e11 # v0.5
         with:
           command: release
         env:
@@ -36,7 +53,7 @@ jobs:
   build:
     name: "Build ${{ matrix.target }}: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
-    needs: publish
+    needs: release-plz-release
     strategy:
       fail-fast: false
       matrix:
