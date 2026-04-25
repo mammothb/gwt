@@ -3,9 +3,6 @@ on:
   push:
     branches:
       - master
-permissions:
-  contents: write
-  pull-requests: write
 concurrency:
   group: release-plz-${{ github.ref }}
   cancel-in-progress: true
@@ -15,7 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.repository_owner == 'mammothb' }}
     permissions:
-      contents: read
+      contents: write
+      pull-requests: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
