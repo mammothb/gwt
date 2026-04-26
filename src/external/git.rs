@@ -64,6 +64,7 @@ impl GitCloneArgs {
             args.push("--config".to_string());
             args.push(format!("{key}={value}"));
         }
+        args.push("--".to_string());
         args.push(self.url.clone());
         args.push(dir.to_string());
         Ok(args)
