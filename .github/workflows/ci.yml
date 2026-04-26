@@ -13,7 +13,7 @@ env:
   RUST_BACKTRACE: 1
 jobs:
   test:
-    name: Test (${{ matrix.os }})
+    name: "Req: Test (${{ matrix.os }})"
     strategy:
       matrix:
         os:
