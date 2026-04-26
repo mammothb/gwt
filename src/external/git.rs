@@ -32,10 +32,11 @@ impl Git {
         let output = Command::new(&self.executable_path)
             .args(args.iter().map(|s| s.as_ref()))
             .output()
-            .map_err(|err| anyhow!("git error: {err}"))?;
+            .map_err(|err| anyhow!("Git error: {err}"))?;
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            bail!("git error: {stderr}");
+            log::debug!("Git error: {stderr}");
+            bail!("Git operation failed");
         }
         Ok(output)
     }
