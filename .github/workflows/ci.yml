@@ -21,9 +21,26 @@ jobs:
           - windows-latest
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout
+      - &checkout
+        name: Checkout
         uses: actions/checkout@v6
-      - name: Cache
+      - &cache
+        name: Cache
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
       - name: Test
         run: cargo test --verbose
+  coverage:
+    name: "Req: Coverage"
+    runs-on: ubuntu-latest
+    steps:
+      - *checkout
+      - name: Setup - cargo-llvm-cov
+        uses: taiki-e/install-action@9baf7c20ae8e70a5220bd48d08870afb205ab1ed # cargo-llvm-cov 2.75.24
+      - *cache
+      - name: Coverage - Run
+        run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+      - name: Coverage - Upload
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+        with:
+          files: lcov.info
+          fail_ci_if_error: true
