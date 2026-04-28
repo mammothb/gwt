@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     path::PathBuf,
     process::{Command, Output},
     str::FromStr,
@@ -29,10 +29,32 @@ impl Git {
         Ok(())
     }
 
+    pub fn get_tracked_branches(&self) -> Result<HashSet<String>> {
+        let output = self.run(&[
+            "config",
+            "get",
+            "--all",
+            "--show-names",
+            "--regexp",
+            "^branch.*merge$",
+        ])?;
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let branches = stdout
+            .lines()
+            .filter_map(|line| line.split('.').nth(1).map(String::from))
+            .collect();
+        Ok(branches)
+    }
+
     pub fn list_worktrees(&self) -> Result<Worktrees> {
         let output = self.run(&["worktree", "list", "--porcelain"])?;
         let stdout = String::from_utf8_lossy(&output.stdout);
         Ok(Worktrees::from_str(&stdout)?)
+    }
+
+    pub fn remove_section(&self, name: &str) -> Result<()> {
+        self.run(&["config", "remove-section", name])?;
+        Ok(())
     }
 
     fn run(&self, args: &[impl AsRef<str>]) -> Result<Output> {
@@ -178,7 +200,7 @@ impl<'a> IntoIterator for &'a Worktrees {
 }
 
 impl Worktrees {
-    pub fn branches(&self) -> Vec<String> {
+    pub fn branches(&self) -> HashSet<String> {
         self.iter()
             .filter_map(|tree| tree.branch().map(String::from))
             .collect()
