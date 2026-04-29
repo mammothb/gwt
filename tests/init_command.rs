@@ -27,30 +27,32 @@ fn init_fails_without_url() {
 #[rstest]
 #[serial]
 fn init_creates_workspace_with_correct_name(repository: (TempDir, String)) {
-    set_current_dir(&repository.0).unwrap();
+    let (repo_dir, repo_url) = repository;
+    set_current_dir(&repo_dir).unwrap();
 
     Command::cargo_bin("gwt")
         .unwrap()
-        .args(["init", &repository.1])
+        .args(["init", &repo_url])
         .assert()
         .success()
         .stdout(predicates::str::contains("Created"));
 
-    assert!(repository.0.path().join("test-repo-workspace").exists());
+    assert!(repo_dir.path().join("test-repo-workspace").exists());
 }
 
 #[rstest]
 #[serial]
 fn init_creates_workspace_with_custom_name(repository: (TempDir, String)) {
-    set_current_dir(&repository.0).unwrap();
+    let (repo_dir, repo_url) = repository;
+    set_current_dir(&repo_dir).unwrap();
 
     let workspace_name = "my-custom-workspace";
     Command::cargo_bin("gwt")
         .unwrap()
-        .args(["init", "--name", workspace_name, &repository.1])
+        .args(["init", "--name", workspace_name, &repo_url])
         .assert()
         .success()
         .stdout(predicates::str::contains("Created"));
 
-    assert!(repository.0.path().join(workspace_name).exists());
+    assert!(repo_dir.path().join(workspace_name).exists());
 }
