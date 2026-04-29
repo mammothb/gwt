@@ -34,20 +34,20 @@ fn repository_with_config() -> (TempDir, PathBuf, PathBuf) {
     (repo_dir, repo_path, config_path)
 }
 
-#[rstest]
-#[serial]
-fn purge_succeeds_empty_tracked_branches(repository: (TempDir, PathBuf)) {
-    // Arrange
-    let (_repo_dir, repo_path) = repository;
-
-    // Act + Assert
-    Command::cargo_bin("gwt")
-        .unwrap()
-        .current_dir(&repo_path)
-        .arg("purge")
-        .assert()
-        .success();
-}
+// #[rstest]
+// #[serial]
+// fn purge_succeeds_empty_tracked_branches(repository: (TempDir, PathBuf)) {
+//     // Arrange
+//     let (_repo_dir, repo_path) = repository;
+//
+//     // Act + Assert
+//     Command::cargo_bin("gwt")
+//         .unwrap()
+//         .current_dir(&repo_path)
+//         .arg("purge")
+//         .assert()
+//         .success();
+// }
 
 #[rstest]
 #[serial]

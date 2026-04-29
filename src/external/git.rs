@@ -42,7 +42,13 @@ impl Git {
         let stdout = String::from_utf8_lossy(&output.stdout);
         let branches = stdout
             .lines()
-            .filter_map(|line| line.split('.').nth(1).map(String::from))
+            .filter_map(|line| {
+                line.split_whitespace()
+                    .next()
+                    .and_then(|s| s.strip_prefix("branch."))
+                    .and_then(|s| s.strip_suffix(".merge"))
+                    .map(String::from)
+            })
             .collect();
         Ok(branches)
     }
