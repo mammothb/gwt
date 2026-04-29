@@ -13,6 +13,8 @@ pub struct Cli {
 pub enum Commands {
     /// Initialize a new workspace
     Init(InitArgs),
+    /// Purge stale branch configurations
+    Purge,
 }
 
 #[derive(Args)]
