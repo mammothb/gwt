@@ -1,5 +1,6 @@
 use std::{
     collections::{HashMap, HashSet},
+    fmt,
     path::PathBuf,
     process::{Command, Output},
     str::FromStr,
@@ -102,11 +103,19 @@ impl GitCloneArgs {
 
 pub struct ParseWorktreeError;
 
-impl From<ParseWorktreeError> for anyhow::Error {
-    fn from(value: ParseWorktreeError) -> Self {
-        anyhow!(value)
+impl fmt::Display for ParseWorktreeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "failed to parse worktree output")
     }
 }
+
+impl fmt::Debug for ParseWorktreeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "ParseWorktreeError")
+    }
+}
+
+impl std::error::Error for ParseWorktreeError {}
 
 #[derive(Debug)]
 pub struct Worktree {
