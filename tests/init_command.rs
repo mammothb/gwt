@@ -28,10 +28,10 @@ fn init_fails_without_url() {
 #[serial]
 fn init_creates_workspace_with_correct_name(repository: (TempDir, String)) {
     let (repo_dir, repo_url) = repository;
-    set_current_dir(&repo_dir).unwrap();
 
     Command::cargo_bin("gwt")
         .unwrap()
+        .current_dir(&repo_dir)
         .args(["init", &repo_url])
         .assert()
         .success()
@@ -44,11 +44,11 @@ fn init_creates_workspace_with_correct_name(repository: (TempDir, String)) {
 #[serial]
 fn init_creates_workspace_with_custom_name(repository: (TempDir, String)) {
     let (repo_dir, repo_url) = repository;
-    set_current_dir(&repo_dir).unwrap();
 
     let workspace_name = "my-custom-workspace";
     Command::cargo_bin("gwt")
         .unwrap()
+        .current_dir(&repo_dir)
         .args(["init", "--name", workspace_name, &repo_url])
         .assert()
         .success()

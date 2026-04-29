@@ -39,11 +39,11 @@ fn repository_with_config() -> (TempDir, PathBuf, PathBuf) {
 fn purge_succeeds_empty_tracked_branches(repository: (TempDir, PathBuf)) {
     // Arrange
     let (_repo_dir, repo_path) = repository;
-    set_current_dir(&repo_path).unwrap();
 
     // Act + Assert
     Command::cargo_bin("gwt")
         .unwrap()
+        .current_dir(&repo_path)
         .arg("purge")
         .assert()
         .success();
@@ -54,11 +54,11 @@ fn purge_succeeds_empty_tracked_branches(repository: (TempDir, PathBuf)) {
 fn purge_removes_orphaned_branch_config(repository_with_config: (TempDir, PathBuf, PathBuf)) {
     // Arrange
     let (_repo_dir, repo_path, config_path) = repository_with_config;
-    set_current_dir(&repo_path).unwrap();
 
     // Act
     Command::cargo_bin("gwt")
         .unwrap()
+        .current_dir(&repo_path)
         .arg("purge")
         .assert()
         .success();
