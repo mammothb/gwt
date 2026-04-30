@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use clap::{Args, Parser, Subcommand, crate_version};
 
 #[derive(Parser)]
@@ -11,10 +13,25 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
+    /// Add a new worktree
+    Add(AddArgs),
     /// Initialize a new workspace
     Init(InitArgs),
     /// Purge stale branch configurations
     Purge,
+}
+
+#[derive(Args)]
+pub struct AddArgs {
+    /// Create a new branch named <BRANCH> and check out <BRANCH> into the new
+    /// worktree. Refuses to create a new branch if it already exists.
+    #[arg(short)]
+    pub branch: String,
+    /// Create a worktree at <PATH>.
+    pub path: PathBuf,
+    /// Start at <COMMIT-ISH>.
+    #[arg(value_name = "COMMIT-ISH")]
+    pub commit: Option<String>,
 }
 
 #[derive(Args)]

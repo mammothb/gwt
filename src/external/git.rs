@@ -1,12 +1,12 @@
 use std::{
     collections::{HashMap, HashSet},
     fmt,
-    path::PathBuf,
+    path::{Path, PathBuf},
     process::{Command, Output},
     str::FromStr,
 };
 
-use anyhow::{Result, anyhow, bail};
+use anyhow::{Context, Result, anyhow, bail};
 
 pub struct Git {
     executable_path: String,
@@ -23,6 +23,18 @@ impl Git {
         Self {
             executable_path: std::env::var("GWT_GIT").unwrap_or_else(|_| "git".into()),
         }
+    }
+
+    pub fn add_worktree(&self, branch: &str, path: &Path, commit: Option<&str>) -> Result<()> {
+        let path = path
+            .to_str()
+            .ok_or_else(|| anyhow!("Invalid UTF-8: '{}'", path.display()))?;
+        let mut args = vec!["worktree", "add", "-b", branch, path];
+        if let Some(c) = commit {
+            args.push(c);
+        }
+        self.run(&args)?;
+        Ok(())
     }
 
     pub fn clone(&self, args: GitCloneArgs) -> Result<()> {
@@ -53,6 +65,16 @@ impl Git {
         Ok(branches)
     }
 
+    pub fn get_worktree_root(&self) -> Result<PathBuf> {
+        let output = self.run(&["rev-parse", "--absolute-git-dir"])?;
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let parent = PathBuf::from(stdout.trim())
+            .parent()
+            .context("cannot get worktree root")?
+            .to_owned();
+        Ok(parent)
+    }
+
     pub fn list_worktrees(&self) -> Result<Worktrees> {
         let output = self.run(&["worktree", "list", "--porcelain"])?;
         let stdout = String::from_utf8_lossy(&output.stdout);
@@ -62,6 +84,12 @@ impl Git {
     pub fn remove_section(&self, name: &str) -> Result<()> {
         self.run(&["config", "remove-section", name])?;
         Ok(())
+    }
+
+    pub fn show_toplevel(&self) -> Result<PathBuf> {
+        let output = self.run(&["rev-parse", "--show-toplevel"])?;
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        Ok(PathBuf::from(stdout.trim()))
     }
 
     fn run(&self, args: &[impl AsRef<str>]) -> Result<Output> {
@@ -125,8 +153,11 @@ impl std::error::Error for ParseWorktreeError {}
 
 #[derive(Debug)]
 pub struct Worktree {
+    #[allow(dead_code)]
     path: PathBuf,
+    #[allow(dead_code)]
     bare: bool,
+    #[allow(dead_code)]
     head: Option<String>,
     branch: Option<String>,
 }

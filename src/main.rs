@@ -9,7 +9,10 @@ use commands::init_workspace;
 use lazy_static::lazy_static;
 use log::{LevelFilter, error, set_logger, set_max_level};
 
-use crate::{commands::purge_workspace, logger::Logger};
+use crate::{
+    commands::{add_worktree, purge_workspace},
+    logger::Logger,
+};
 
 lazy_static! {
     static ref LOGGER: Logger = {
@@ -31,6 +34,7 @@ fn main() {
     let cli = Cli::parse();
 
     if let Err(err) = match &cli.command {
+        Commands::Add(args) => add_worktree(args),
         Commands::Init(args) => init_workspace(args),
         Commands::Purge => purge_workspace(),
     } {
