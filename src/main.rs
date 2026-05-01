@@ -3,13 +3,18 @@ mod commands;
 mod external;
 mod logger;
 
+use std::{path::Path, process};
+
 use clap::Parser;
 use cli::{Cli, Commands};
 use commands::init_workspace;
 use lazy_static::lazy_static;
 use log::{LevelFilter, error, set_logger, set_max_level};
 
-use crate::{commands::purge_workspace, logger::Logger};
+use crate::{
+    commands::{add_worktree, purge_workspace},
+    logger::Logger,
+};
 
 lazy_static! {
     static ref LOGGER: Logger = {
@@ -31,9 +36,20 @@ fn main() {
     let cli = Cli::parse();
 
     if let Err(err) = match &cli.command {
+        Commands::Add { path, args } => add_worktree(&args.branch, args.commit.as_deref(), path),
+        Commands::AddFeat(args) => {
+            add_worktree(&args.branch, args.commit.as_deref(), Path::new("feat"))
+        }
+        Commands::AddFix(args) => {
+            add_worktree(&args.branch, args.commit.as_deref(), Path::new("fix"))
+        }
+        Commands::AddPr(args) => {
+            add_worktree(&args.branch, args.commit.as_deref(), Path::new("pr"))
+        }
         Commands::Init(args) => init_workspace(args),
         Commands::Purge => purge_workspace(),
     } {
         error!("Failed: {err}");
+        process::exit(1);
     }
 }

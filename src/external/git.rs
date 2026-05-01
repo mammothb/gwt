@@ -1,12 +1,12 @@
 use std::{
     collections::{HashMap, HashSet},
     fmt,
-    path::PathBuf,
+    path::{Path, PathBuf},
     process::{Command, Output},
     str::FromStr,
 };
 
-use anyhow::{Result, anyhow, bail};
+use anyhow::{Context, Result, anyhow, bail};
 
 pub struct Git {
     executable_path: String,
@@ -25,20 +25,35 @@ impl Git {
         }
     }
 
+    pub fn add_worktree(&self, branch: &str, path: &Path, commit: Option<&str>) -> Result<()> {
+        let path = path
+            .to_str()
+            .ok_or_else(|| anyhow!("Invalid UTF-8: '{}'", path.display()))?;
+        let mut args = vec!["worktree", "add", "-b", branch, path];
+        if let Some(c) = commit {
+            args.push(c);
+        }
+        self.run(&args)?;
+        Ok(())
+    }
+
     pub fn clone(&self, args: GitCloneArgs) -> Result<()> {
         self.run(&args.to_args()?)?;
         Ok(())
     }
 
     pub fn get_tracked_branches(&self) -> Result<HashSet<String>> {
-        let output = self.run(&[
+        let output = match self.run_optional(&[
             "config",
             "get",
             "--all",
             "--show-names",
             "--regexp",
             "^branch.*merge$",
-        ])?;
+        ])? {
+            Some(output) => output,
+            None => return Ok(HashSet::new()),
+        };
         let stdout = String::from_utf8_lossy(&output.stdout);
         let branches = stdout
             .lines()
@@ -53,6 +68,16 @@ impl Git {
         Ok(branches)
     }
 
+    pub fn get_worktree_root(&self) -> Result<PathBuf> {
+        let output = self.run(&["rev-parse", "--absolute-git-dir"])?;
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let parent = PathBuf::from(stdout.trim())
+            .parent()
+            .context("cannot get worktree root")?
+            .to_owned();
+        Ok(parent)
+    }
+
     pub fn list_worktrees(&self) -> Result<Worktrees> {
         let output = self.run(&["worktree", "list", "--porcelain"])?;
         let stdout = String::from_utf8_lossy(&output.stdout);
@@ -62,6 +87,12 @@ impl Git {
     pub fn remove_section(&self, name: &str) -> Result<()> {
         self.run(&["config", "remove-section", name])?;
         Ok(())
+    }
+
+    pub fn show_toplevel(&self) -> Result<PathBuf> {
+        let output = self.run(&["rev-parse", "--show-toplevel"])?;
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        Ok(PathBuf::from(stdout.trim()))
     }
 
     fn run(&self, args: &[impl AsRef<str>]) -> Result<Output> {
@@ -75,6 +106,22 @@ impl Git {
             bail!("Git operation failed");
         }
         Ok(output)
+    }
+
+    fn run_optional(&self, args: &[impl AsRef<str>]) -> Result<Option<Output>> {
+        let output = Command::new(&self.executable_path)
+            .args(args.iter().map(|s| s.as_ref()))
+            .output()
+            .map_err(|err| anyhow!("Git error: {err}"))?;
+        if output.status.success() {
+            return Ok(Some(output));
+        }
+        if output.status.code() == Some(1) {
+            return Ok(None);
+        }
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        log::debug!("Git error: {stderr}");
+        bail!("Git operation failed");
     }
 }
 
@@ -125,8 +172,11 @@ impl std::error::Error for ParseWorktreeError {}
 
 #[derive(Debug)]
 pub struct Worktree {
+    #[allow(dead_code)]
     path: PathBuf,
+    #[allow(dead_code)]
     bare: bool,
+    #[allow(dead_code)]
     head: Option<String>,
     branch: Option<String>,
 }

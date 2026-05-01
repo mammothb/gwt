@@ -1,5 +1,3 @@
-use std::env::set_current_dir;
-
 use assert_cmd::Command;
 use git2::Repository;
 use rstest::*;
