@@ -3,10 +3,14 @@ use rstest::*;
 use tempfile::TempDir;
 
 #[rstest]
-fn add_fails_without_branch() {
+#[case("add")]
+#[case("add-feat")]
+#[case("add-fix")]
+#[case("add-pr")]
+fn add_fails_without_branch(#[case] command: &str) {
     Command::cargo_bin("gwt")
         .unwrap()
-        .args(["add", "some-path"])
+        .args([command, "some-path"])
         .assert()
         .failure()
         .stderr(predicates::str::contains("-b <BRANCH>"));
