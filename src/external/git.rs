@@ -43,14 +43,17 @@ impl Git {
     }
 
     pub fn get_tracked_branches(&self) -> Result<HashSet<String>> {
-        let output = self.run(&[
+        let output = match self.run_optional(&[
             "config",
             "get",
             "--all",
             "--show-names",
             "--regexp",
             "^branch.*merge$",
-        ])?;
+        ])? {
+            Some(output) => output,
+            None => return Ok(HashSet::new()),
+        };
         let stdout = String::from_utf8_lossy(&output.stdout);
         let branches = stdout
             .lines()
@@ -103,6 +106,22 @@ impl Git {
             bail!("Git operation failed");
         }
         Ok(output)
+    }
+
+    fn run_optional(&self, args: &[impl AsRef<str>]) -> Result<Option<Output>> {
+        let output = Command::new(&self.executable_path)
+            .args(args.iter().map(|s| s.as_ref()))
+            .output()
+            .map_err(|err| anyhow!("Git error: {err}"))?;
+        if output.status.success() {
+            return Ok(Some(output));
+        }
+        if output.status.code() == Some(1) {
+            return Ok(None);
+        }
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        log::debug!("Git error: {stderr}");
+        bail!("Git operation failed");
     }
 }
 
