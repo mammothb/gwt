@@ -3,6 +3,8 @@ mod commands;
 mod external;
 mod logger;
 
+use std::path::Path;
+
 use clap::Parser;
 use cli::{Cli, Commands};
 use commands::init_workspace;
@@ -34,7 +36,16 @@ fn main() {
     let cli = Cli::parse();
 
     if let Err(err) = match &cli.command {
-        Commands::Add(args) => add_worktree(args),
+        Commands::Add { path, args } => add_worktree(&args.branch, args.commit.as_deref(), path),
+        Commands::AddFeat(args) => {
+            add_worktree(&args.branch, args.commit.as_deref(), Path::new("feat"))
+        }
+        Commands::AddFix(args) => {
+            add_worktree(&args.branch, args.commit.as_deref(), Path::new("fix"))
+        }
+        Commands::AddPr(args) => {
+            add_worktree(&args.branch, args.commit.as_deref(), Path::new("pr"))
+        }
         Commands::Init(args) => init_workspace(args),
         Commands::Purge => purge_workspace(),
     } {

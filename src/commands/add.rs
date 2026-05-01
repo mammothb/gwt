@@ -1,21 +1,23 @@
+use std::path::Path;
+
 use anyhow::Result;
 
-use crate::{cli::AddArgs, external::Git};
+use crate::external::Git;
 
-pub fn add(args: &AddArgs) -> Result<()> {
+pub fn add(branch: &str, commit: Option<&str>, path: &Path) -> Result<()> {
     let git = Git::new();
     let root = git.show_toplevel().or_else(|_| git.get_worktree_root())?;
-    let path = if args.path.is_relative() {
-        root.join(&args.path)
+    let path = if path.is_relative() {
+        root.join(path)
     } else {
-        args.path.clone()
+        path.to_path_buf()
     };
-    git.add_worktree(&args.branch, &path, args.commit.as_deref())?;
+    git.add_worktree(branch, &path, commit)?;
     log::info!(
         "Added worktree at {}. Checked out {} at {}",
         path.display(),
-        args.branch,
-        args.commit.as_deref().unwrap_or("HEAD")
+        branch,
+        commit.unwrap_or("HEAD")
     );
     Ok(())
 }
