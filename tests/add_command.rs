@@ -85,7 +85,7 @@ fn add_fails_outside_repo() {
         .current_dir(dir.path())
         .args(["add", "some-path", "-b", "some-branch"])
         .assert()
-        .success()
+        .failure()
         .stderr(predicates::str::contains("Git operation failed"));
 }
 

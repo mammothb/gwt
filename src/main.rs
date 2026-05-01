@@ -3,7 +3,7 @@ mod commands;
 mod external;
 mod logger;
 
-use std::path::Path;
+use std::{path::Path, process};
 
 use clap::Parser;
 use cli::{Cli, Commands};
@@ -50,5 +50,6 @@ fn main() {
         Commands::Purge => purge_workspace(),
     } {
         error!("Failed: {err}");
+        process::exit(1);
     }
 }
