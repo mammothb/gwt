@@ -102,8 +102,8 @@ impl Git {
             .map_err(|err| anyhow!("Git error: {err}"))?;
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            log::debug!("Git error: {stderr}");
-            bail!("Git operation failed");
+            let stderr = stderr.trim();
+            bail!("Git operation failed:\n{stderr}");
         }
         Ok(output)
     }
@@ -120,8 +120,8 @@ impl Git {
             return Ok(None);
         }
         let stderr = String::from_utf8_lossy(&output.stderr);
-        log::debug!("Git error: {stderr}");
-        bail!("Git operation failed");
+        let stderr = stderr.trim();
+        bail!("Git operation failed:\n{stderr}");
     }
 }
 
