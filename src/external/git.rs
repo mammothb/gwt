@@ -95,15 +95,23 @@ impl Git {
         Ok(PathBuf::from(stdout.trim()))
     }
 
+    fn format_failure(output: &Output) -> String {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let stderr = stderr.trim();
+        if stderr.is_empty() {
+            format!("Git operation failed (status: {})", output.status)
+        } else {
+            format!("Git operation failed:\n{stderr}")
+        }
+    }
+
     fn run(&self, args: &[impl AsRef<str>]) -> Result<Output> {
         let output = Command::new(&self.executable_path)
             .args(args.iter().map(|s| s.as_ref()))
             .output()
             .map_err(|err| anyhow!("Git error: {err}"))?;
         if !output.status.success() {
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            log::debug!("Git error: {stderr}");
-            bail!("Git operation failed");
+            bail!("{}", Self::format_failure(&output));
         }
         Ok(output)
     }
@@ -119,9 +127,7 @@ impl Git {
         if output.status.code() == Some(1) {
             return Ok(None);
         }
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        log::debug!("Git error: {stderr}");
-        bail!("Git operation failed");
+        bail!("{}", Self::format_failure(&output));
     }
 }
 
@@ -269,5 +275,19 @@ impl Worktrees {
         self.iter()
             .filter_map(|tree| tree.branch().map(String::from))
             .collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rstest::*;
+
+    #[rstest]
+    fn run_optional_bails_on_unexpected_exit_code() {
+        let git = Git::new();
+        let result = git.run_optional(&["config", "--invalid-flag-xyz"]);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("unknown option"));
     }
 }

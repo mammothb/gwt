@@ -86,7 +86,7 @@ fn add_fails_outside_repo() {
         .args(["add", "some-path", "-b", "some-branch"])
         .assert()
         .failure()
-        .stderr(predicates::str::contains("Git operation failed"));
+        .stderr(predicates::str::contains("not a git repository"));
 }
 
 #[rstest]
