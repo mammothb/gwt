@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.8](https://github.com/mammothb/gwt/compare/v0.1.7...v0.1.8) - 2026-05-02
+
+### Added
+
+- show full git operation error ([#19](https://github.com/mammothb/gwt/pull/19))
+
+### Other
+
+- move cli definition to commands/mod.rs ([#17](https://github.com/mammothb/gwt/pull/17))
+
 ## [0.1.7](https://github.com/mammothb/gwt/compare/v0.1.6...v0.1.7) - 2026-05-01
 
 ### Added
