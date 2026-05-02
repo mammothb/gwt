@@ -271,3 +271,17 @@ impl Worktrees {
             .collect()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rstest::*;
+
+    #[rstest]
+    fn run_optional_bails_on_unexpected_exit_code() {
+        let git = Git::new();
+        let result = git.run_optional(&["config", "--invalid-flag-xyz"]);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("unknown option"));
+    }
+}
