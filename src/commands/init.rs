@@ -8,15 +8,12 @@ use std::{
 use anyhow::{Context, Result, bail};
 use log::info;
 
-use crate::{
-    cli::InitArgs,
-    external::{Git, GitCloneArgs},
-};
+use crate::external::{Git, GitCloneArgs};
 
-pub fn init(args: &InitArgs) -> Result<()> {
-    let name = match &args.name {
-        Some(name) => name.clone(),
-        None => format!("{}-workspace", extract_repo_name(&args.url)?),
+pub fn init(url: &str, name: Option<&str>) -> Result<()> {
+    let name = match name {
+        Some(name) => name.to_owned(),
+        None => format!("{}-workspace", extract_repo_name(url)?),
     };
 
     let workspace_dir = current_dir()?.join(&name);
@@ -26,7 +23,7 @@ pub fn init(args: &InitArgs) -> Result<()> {
     create_dir_all(&workspace_dir)?;
     info!("Created '{}'", workspace_dir.display());
 
-    let repo_dir = clone_repository(&args.url, &workspace_dir)?;
+    let repo_dir = clone_repository(url, &workspace_dir)?;
     info!("Initialized '{}'", repo_dir.display());
 
     Ok(())

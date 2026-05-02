@@ -1,4 +1,3 @@
-mod cli;
 mod commands;
 mod external;
 mod logger;
@@ -6,13 +5,11 @@ mod logger;
 use std::{path::Path, process};
 
 use clap::Parser;
-use cli::{Cli, Commands};
-use commands::init_workspace;
 use lazy_static::lazy_static;
 use log::{LevelFilter, error, set_logger, set_max_level};
 
 use crate::{
-    commands::{add_worktree, purge_workspace},
+    commands::{Cli, Commands, add_worktree, init_workspace, purge_workspace},
     logger::Logger,
 };
 
@@ -46,7 +43,7 @@ fn main() {
         Commands::AddPr(args) => {
             add_worktree(&args.branch, args.commit.as_deref(), Path::new("pr"))
         }
-        Commands::Init(args) => init_workspace(args),
+        Commands::Init(args) => init_workspace(&args.url, args.name.as_deref()),
         Commands::Purge => purge_workspace(),
     } {
         error!("Failed: {err}");
